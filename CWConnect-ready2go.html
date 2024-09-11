@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Comic World Connection
+  </title>
+  <meta content="Manage comic book inventory and customer subscriptions with ease." name="description"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js">
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/2.0.3/marked.min.js">
+  </script>
+  <style>
+   body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+        main {
+            flex: 1 0 auto;
+        }
+        .tab a.active {
+            background-color: #ee6e73 !important;
+            color: #fff !important;
+        }
+        .tab a:focus.active {
+            background-color: #ee6e73 !important;
+        }
+        #dashboard {
+            margin-top: 20px;
+        }
+        .dashboard-card {
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .dashboard-card:hover {
+            transform: scale(1.05);
+        }
+        .dashboard-card i {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        @media only screen and (max-width: 600px) {
+            .container {
+                width: 100%;
+            }
+            nav .brand-logo {
+                font-size: 1.5rem;
+            }
+            .dashboard-card {
+                margin-bottom: 20px;
+            }
+        }
+        .comic-item, .customer-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .comic-item .title, .customer-item .name {
+            font-weight: bold;
+        }
+        .comic-item .stock {
+            float: right;
+        }
+        .comic-item .actions, .customer-item .actions {
+            margin-top: 10px;
+        }
+        .pull-list-item {
+            padding: 5px;
+            margin: 5px 0;
+            background-color: #f5f5f5;
+            border-radius: 3px;
+        }
+        .fab {
+            position: fixed;
+            right: 23px;
+            bottom: 23px;
+            padding: 0;
+            margin: 0;
+            width: 56px;
+            height: 56px;
+            line-height: 56px;
+            text-align: center;
+        }
+        .fab i {
+            font-size: 1.6rem;
+            line-height: 56px;
+        }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #fff;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+        }
+        .bottom-nav a {
+            color: #9e9e9e;
+            text-align: center;
+        }
+        .bottom-nav a.active {
+            color: #ee6e73;
+        }
+        .bottom-nav i {
+            display: block;
+            font-size: 24px;
+        }
+        .tooltipped {
+            cursor: pointer;
+        }
+        #dashboard-customer-results {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .customer-card {
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            width: calc(33.33% - 20px);
+            margin-bottom: 20px;
+        }
+        .customer-card:hover {
+            transform: scale(1.02);
+        }
+        .customer-info-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 500px;
+            max-height: 80%;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .customer-info-box .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
+        #settings-modal {
+            max-width: 400px;
+        }
+        .switch label input[type=checkbox]:checked+.lever:after {
+            background-color: #ee6e73;
+        }
+        .customer-info-box h4 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+        .customer-info-box h5 {
+            font-size: 0.9rem;
+            color: #757575;
+            margin-bottom: 5px;
+        }
+        .customer-info-box p {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+        .pull-list-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80%;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .pull-list-modal h4 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        .pull-list-modal ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .pull-list-modal li {
+            padding: 5px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .pull-list-modal li:last-child {
+            border-bottom: none;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        .comic-cover {
+            max-width: 100px;
+            max-height: 150px;
+            object-fit: contain;
+            float: right;
+            margin-left: 10px;
+        }
+        #clock {
+            font-size: 1rem;
+            color: white;
+            margin-right: 15px;
+        }
+        .star-rating {
+            display: inline-block;
+            cursor: pointer;
+        }
+        .star-rating .material-icons {
+            font-size: 24px;
+            color: #ccc;
+            transition: color 0.2s;
+        }
+        .star-rating .material-icons.active {
+            color: #ffd700;
+        }
+        .pagination-controls {
+            margin-top: 20px;
+        }
+        .pagination li.active {
+            background-color: #ee6e73;
+        }
+        @media only screen and (max-width: 600px) {
+            .customer-card {
+                width: 100%;
+            }
+        }
+        .dashboard-customer-card {
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    .dashboard-customer-card:hover {
+        transform: scale(1.02);
+    }
+    .dashboard-customer-card .card-title {
+        font-size: 1.2rem;
+        margin-bottom: 5px;
+    }
+    .dashboard-customer-card p {
+        margin: 5px 0;
+        font-size: 0.9rem;
+    }
+    .dashboard-customer-card .card-action {
+        padding-top: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .dashboard-customer-card .btn-small {
+        padding: 0 0.5rem;
+    }
+    .dashboard-customer-card .rating-select-wrapper {
+        width: 100px;
+    }
+  </style>
+ </head>
+ <body>
+  <nav class="green" id="main-nav">
+   <div class="nav-wrapper container">
+    <a class="brand-logo tooltipped" data-position="bottom" data-tooltip="Comic World Connection Home" href="#">
+     Comic World Connection
+    </a>
+    <ul class="right hide-on-med-and-down" id="nav-mobile">
+     <li>
+      <span id="clock">
+       11:34 AM | Tuesday the 10, 2024
+      </span>
+     </li>
+    </ul>
+   </div>
+  </nav>
+  <main class="container">
+   <div class="row">
+    <div class="col s12">
+     <ul class="tabs">
+      <li class="tab col s4">
+       <a class="tooltipped active" data-position="bottom" data-tooltip="View Dashboard" href="#dashboard">
+        Dashboard
+       </a>
+      </li>
+      <li class="tab col s4">
+       <a class="tooltipped" data-position="bottom" data-tooltip="Manage Inventory" href="#inventory">
+        Inventory
+       </a>
+      </li>
+      <li class="tab col s4">
+       <a class="tooltipped" data-position="bottom" data-tooltip="Manage Customers" href="#customers">
+        Customers
+       </a>
+      </li>
+     </ul>
+    </div>
+    <div class="col s12 active" id="dashboard">
+     <h4>
+      Dashboard
+     </h4>
+     <div class="row">
+      <div class="col s12 m4">
+       <div class="card-panel red lighten-2 dashboard-card tooltipped" data-position="bottom" data-tooltip="View Inventory" onclick="goToTab('inventory')">
+        <i class="material-icons white-text">
+         book
+        </i>
+        <h5 class="white-text">
+         Total Comics
+        </h5>
+        <h3 class="white-text" id="total-comics">
+         0
+        </h3>
+       </div>
+      </div>
+      <div class="col s12 m4">
+       <div class="card-panel blue lighten-2 dashboard-card tooltipped" data-position="bottom" data-tooltip="View Customers" onclick="goToTab('customers')">
+        <i class="material-icons white-text">
+         people
+        </i>
+        <h5 class="white-text">
+         Active Customers
+        </h5>
+        <h3 class="white-text" id="active-customers">
+         0
+        </h3>
+       </div>
+      </div>
+      <div class="col s12 m4">
+       <div class="card-panel green lighten-2 dashboard-card tooltipped" data-position="bottom" data-tooltip="View Pending Notifications">
+        <i class="material-icons white-text">
+         notifications
+        </i>
+        <h5 class="white-text">
+         Pending Notifications
+        </h5>
+        <h3 class="white-text" id="pending-notifications">
+         0
+        </h3>
+       </div>
+      </div>
+     </div>
+     <div class="row">
+      <div class="col s12">
+       <h5>
+        Customer Search
+       </h5>
+       <div class="input-field">
+        <input class="validate tooltipped" data-position="bottom" data-tooltip="Search for customers" id="dashboard-customer-search" type="text"/>
+        <label for="dashboard-customer-search">
+         Search Customers
+        </label>
+       </div>
+       <div id="dashboard-customer-results">
+       </div>
+      </div>
+     </div>
+     <div class="row">
+      <div class="col s12">
+       <h5>
+        Recent Activity
+       </h5>
+       <ul class="collection" id="recent-activity">
+       </ul>
+      </div>
+     </div>
+    </div>
+    <div class="col s12" id="inventory" style="display: none;">
+     <h4>
+      Comic Book Inventory
+     </h4>
+     <div class="row">
+      <div class="input-field col s12">
+       <input class="validate tooltipped" data-position="bottom" data-tooltip="Search for comics" id="comic-search" type="text"/>
+       <label for="comic-search">
+        Search Comics
+       </label>
+      </div>
+     </div>
+     <div id="comic-list">
+      <!-- Comic items will be dynamically added here -->
+     </div>
+    </div>
+    <div class="col s12" id="customers" style="display: none;">
+     <h4>
+      Customer Management
+     </h4>
+     <div class="row">
+      <div class="input-field col s12">
+       <input class="validate tooltipped" data-position="bottom" data-tooltip="Search for customers" id="customer-search" type="text"/>
+       <label for="customer-search">
+        Search Customers
+       </label>
+      </div>
+     </div>
+     <div id="customer-list">
+      <!-- Customer items will be dynamically added here -->
+     </div>
+    </div>
+   </div>
+  </main>
+  <div class="fixed-action-btn direction-top">
+   <a class="btn-floating btn-large red tooltipped" data-position="left" data-tooltip="Add new item">
+    <i class="large material-icons">
+     add
+    </i>
+   </a>
+   <ul>
+    <li>
+     <a class="btn-floating red tooltipped" data-position="left" data-tooltip="Add new comic" onclick="showAddComicModal()">
+      <i class="material-icons">
+       book
+      </i>
+     </a>
+    </li>
+    <li>
+     <a class="btn-floating blue tooltipped" data-position="left" data-tooltip="Add new customer" onclick="showAddCustomerModal()">
+      <i class="material-icons">
+       person_add
+      </i>
+     </a>
+    </li>
+    <li>
+     <a class="btn-floating green tooltipped" data-position="left" data-tooltip="Settings" onclick="showSettingsModal()">
+      <i class="material-icons">
+       settings
+      </i>
+     </a>
+    </li>
+    <li>
+     <a class="btn-floating yellow darken-1 tooltipped" data-position="left" data-tooltip="Save all data" onclick="saveAllData()">
+      <i class="material-icons">
+       save
+      </i>
+     </a>
+    </li>
+   </ul>
+  </div>
+  <div class="bottom-nav hide-on-large-only">
+   <a class="active tooltipped" data-position="top" data-tooltip="Dashboard" href="#dashboard">
+    <i class="material-icons">
+     dashboard
+    </i>
+    Dashboard
+   </a>
+   <a class="tooltipped" data-position="top" data-tooltip="Inventory" href="#inventory">
+    <i class="material-icons">
+     book
+    </i>
+    Inventory
+   </a>
+   <a class="tooltipped" data-position="top" data-tooltip="Customers" href="#customers">
+    <i class="material-icons">
+     people
+    </i>
+    Customers
+   </a>
+  </div>
+  <!-- part 2 -->
+  <!-- Add Comic Modal -->
+  <div class="modal" id="add-comic-modal">
+   <div class="modal-content">
+    <h4>
+     Add New Comic
+    </h4>
+    <form id="comic-form">
+     <div class="input-field">
+      <input class="validate" id="title" required="" type="text"/>
+      <label for="title">
+       Title
+      </label>
+     </div>
+     <div class="input-field">
+      <select id="publisher" required="">
+       <option disabled="" selected="" value="">
+        Choose publisher
+       </option>
+       <option value="Marvel">
+        Marvel
+       </option>
+       <option value="DC Comics">
+        DC Comics
+       </option>
+       <option value="Image Comics">
+        Image Comics
+       </option>
+       <option value="Dark Horse Comics">
+        Dark Horse Comics
+       </option>
+       <option value="IDW Publishing">
+        IDW Publishing
+       </option>
+       <option value="Boom! Studios">
+        Boom! Studios
+       </option>
+       <option value="Vertigo">
+        Vertigo
+       </option>
+       <option value="Dynamite Entertainment">
+        Dynamite Entertainment
+       </option>
+       <option value="Valiant Comics">
+        Valiant Comics
+       </option>
+       <option value="Other">
+        Other
+       </option>
+      </select>
+      <label for="publisher">
+       Publisher
+      </label>
+     </div>
+     <div class="input-field">
+      <input class="validate" id="issue_number" type="number"/>
+      <label for="issue_number">
+       Issue Number (Optional)
+      </label>
+     </div>
+     <div class="input-field">
+      <input class="validate" id="genre" type="text"/>
+      <label for="genre">
+       Genre (Optional)
+      </label>
+     </div>
+     <div class="input-field">
+      <input class="datepicker validate" id="release_date" type="text"/>
+      <label for="release_date">
+       Release Date (Optional)
+      </label>
+     </div>
+     <div class="input-field">
+      <input class="validate" id="price" step="0.01" type="number"/>
+      <label for="price">
+       Price (Optional)
+      </label>
+     </div>
+     <div class="input-field">
+      <input class="validate" id="stock" type="number"/>
+      <label for="stock">
+       Stock Quantity (Optional)
+      </label>
+     </div>
+     <button class="btn waves-effect waves-light" type="submit">
+      Add Comic
+      <i class="material-icons right">
+       send
+      </i>
+     </button>
+    </form>
+   </div>
+  </div>
+  <!-- Export Modal -->
+  <div class="modal" id="export-modal">
+   <div class="modal-content">
+    <h4>
+     Export Database
+    </h4>
+    <p>
+     It's recommended to export your database regularly to prevent data loss. Would you like to export your database now?
+    </p>
+   </div>
+   <div class="modal-footer">
+    <a class="modal-close waves-effect waves-green btn-flat" href="#!">
+     No, thanks
+    </a>
+    <a class="modal-close waves-effect waves-green btn" href="#!" onclick="exportDatabase()">
+     Yes, export
+    </a>
+   </div>
+  </div>
+  <!-- Add Customer Modal -->
+  <div class="modal" id="add-customer-modal">
+   <div class="modal-content">
+    <h4>
+     Add New Customer
+    </h4>
+    <form id="customer-form">
+     <div class="input-field">
+      <input class="validate" id="name" required="" type="text"/>
+      <label for="name">
+       Name
+      </label>
+     </div>
+     <div class="input-field">
+      <input class="validate" id="email" type="email"/>
+      <label for="email">
+       Email (Optional)
+      </label>
+     </div>
+     <div class="input-field">
+      <input class="validate" id="phone" required="" type="tel"/>
+      <label for="phone">
+       Phone
+      </label>
+     </div>
+     <div class="input-field">
+      <textarea class="materialize-textarea" id="notes"></textarea>
+      <label for="notes">
+       Notes
+      </label>
+     </div>
+     <div class="input-field">
+      <textarea class="materialize-textarea" id="pull_list"></textarea>
+      <label for="pull_list">
+       Pull List (One item per line)
+      </label>
+     </div>
+     <button class="btn waves-effect waves-light" type="submit">
+      Add / Update Customer
+      <i class="material-icons right">
+       person_add
+      </i>
+     </button>
+    </form>
+   </div>
+  </div>
+  <!-- Settings Modal -->
+  <div class="modal" id="settings-modal">
+   <div class="modal-content">
+    <h4>
+     Settings
+    </h4>
+    <div class="switch">
+     <label>
+      Desktop Mode
+      <input id="mode-toggle" type="checkbox"/>
+      <span class="lever">
+      </span>
+      Mobile Mode
+     </label>
+    </div>
+    <div class="switch">
+     <label>
+      Fetch Covers
+      <input id="fetch-covers-toggle" type="checkbox"/>
+      <span class="lever">
+      </span>
+     </label>
+    </div>
+    <div style="margin-top: 20px;">
+     <a class="waves-effect waves-light btn" id="export-json">
+      <i class="material-icons left">
+       file_download
+      </i>
+      Export JSON
+     </a>
+    </div>
+    <div style="margin-top: 20px;">
+     <a class="waves-effect waves-light btn" id="import-json">
+      <i class="material-icons left">
+       file_upload
+      </i>
+      Import Backup
+     </a>
+     <input accept=".json" id="import-json-input" style="display: none;" type="file"/>
+    </div>
+    <div style="margin-top: 20px;">
+     <a class="waves-effect waves-light btn" id="legacy-import">
+      <i class="material-icons left">
+       folder_open
+      </i>
+      Import Legacy Data
+     </a>
+    </div>
+    <div style="margin-top: 20px;">
+     <a class="waves-effect waves-light btn" id="gist-push">
+      <i class="material-icons left">
+       cloud_upload
+      </i>
+      Gist Push
+     </a>
+    </div>
+    <div style="margin-top: 20px;">
+     <a class="waves-effect waves-light btn" id="gist-import">
+      <i class="material-icons left">
+       cloud_download
+      </i>
+      Gist Import
+     </a>
+    </div>
+   </div>
+  </div>
+  <!-- Pull List Modal -->
+  <div class="pull-list-modal" id="pull-list-modal" style="display: none;">
+   <h4>
+    Customer Pull List
+   </h4>
+   <ul id="pull-list-items">
+    <!-- Pull list items will be dynamically added here -->
+   </ul>
+  </div>
+  <div class="modal-overlay" id="modal-overlay" style="display: none;">
+  </div>
+  <script>
+   document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOMContentLoaded event fired');
+
+            // Initialize Materialize components
+            var tabs = document.querySelectorAll('.tabs');
+            M.Tabs.init(tabs);
+
+            var fab = document.querySelectorAll('.fixed-action-btn');
+            M.FloatingActionButton.init(fab, {
+                direction: 'top'
+            });
+
+            var modals = document.querySelectorAll('.modal');
+            M.Modal.init(modals);
+
+            var tooltips = document.querySelectorAll('.tooltipped');
+            M.Tooltip.init(tooltips);
+
+            var selects = document.querySelectorAll('select');
+            M.FormSelect.init(selects);
+
+            var datepickers = document.querySelectorAll('.datepicker');
+            M.Datepicker.init(datepickers, {
+                format: 'yyyy-mm-dd',
+                yearRange: [1930, new Date().getFullYear() + 10],
+                showClearBtn: true,
+                i18n: {
+                    clear: 'Clear',
+                    done: 'Select',
+                    cancel: 'Cancel'
+                }
+            });
+
+            // Initialize comics and customers arrays
+            window.comics = [];
+            window.customers = [];
+
+            // New pagination variables
+            window.CUSTOMERS_PER_PAGE = 9; // Adjust this number as needed
+            window.currentPage = 1;
+
+            // Load data from local storage
+            if (localStorage.getItem('comics')) {
+                window.comics = JSON.parse(localStorage.getItem('comics'));
+                renderComics();
+            }
+            if (localStorage.getItem('customers')) {
+                window.customers = JSON.parse(localStorage.getItem('customers'));
+                renderCustomers();
+                renderDashboardCustomers(window.customers);
+            }
+
+            updateDashboard();
+            checkDailyExport();
+
+            // Comic form submission
+            document.getElementById('comic-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const comic = {
+        title: document.getElementById('title').value,
+        publisher: document.getElementById('publisher').value,
+        issue_number: document.getElementById('issue_number').value ? parseInt(document.getElementById('issue_number').value) : null,
+        genre: document.getElementById('genre').value || "N/A",
+        release_date: document.getElementById('release_date').value || null,
+        price: document.getElementById('price').value ? parseFloat(document.getElementById('price').value) : null,
+        stock: document.getElementById('stock').value ? parseInt(document.getElementById('stock').value) : null
+    };
+    window.comics.push(comic);
+    localStorage.setItem('comics', JSON.stringify(window.comics));
+    renderComics();
+    updateDashboard();
+    this.reset();
+    M.Modal.getInstance(document.getElementById('add-comic-modal')).close();
+
+    if (document.getElementById('fetch-covers-toggle').checked) {
+        fetchComicCover(comic);
+    }
+});
+
+            // Customer form submission
+            document.getElementById('customer-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const customerData = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value || "<no>",
+        phone: document.getElementById('phone').value,
+        notes: document.getElementById('notes').value,
+        pull_list: document.getElementById('pull_list').value
+            .split('\n')
+            .map(item => item.trim())
+            .filter(item => item !== ''),
+        rating: window.editingCustomerIndex !== undefined ? window.customers[window.editingCustomerIndex].rating : 0
+    };
+
+    console.log('Saving customer data:', customerData); // Debug log
+
+    if (window.editingCustomerIndex !== undefined) {
+        // Update existing customer
+        window.customers[window.editingCustomerIndex] = {
+            ...window.customers[window.editingCustomerIndex],
+            ...customerData
+        };
+        console.log('Updated customer:', window.customers[window.editingCustomerIndex]); // Debug log
+    } else {
+        // Add new customer
+        window.customers.push(customerData);
+        console.log('Added new customer:', customerData); // Debug log
+    }
+
+    localStorage.setItem('customers', JSON.stringify(window.customers));
+    renderCustomers(); // Update customer management section
+    renderDashboardCustomers(window.customers); // Update dashboard
+    updateDashboard(); // Update any dashboard counters
+
+    this.reset();
+    const submitButton = this.querySelector('button[type="submit"]');
+    submitButton.textContent = 'Add / Update Customer';
+    submitButton.insertAdjacentHTML('beforeend', '<i class="material-icons right">person_add</i>');
+
+    M.Modal.getInstance(document.getElementById('add-customer-modal')).close();
+    M.toast({html: 'Customer added/updated successfully!', classes: 'rounded'});
+});
+
+            // Comic search
+            document.getElementById('comic-search').addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const filteredComics = window.comics.filter(comic => 
+                    comic.title.toLowerCase().includes(searchTerm) ||
+                    comic.publisher.toLowerCase().includes(searchTerm) ||
+                    (comic.issue_number && comic.issue_number.toString().includes(searchTerm))
+                );
+                renderComics(filteredComics);
+            });
+
+            // Customer search
+            document.getElementById('customer-search').addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const filteredCustomers = window.customers.filter(customer => 
+                    customer.name.toLowerCase().includes(searchTerm) ||
+                    customer.email.toLowerCase().includes(searchTerm) ||
+                    customer.phone.includes(searchTerm)
+                );
+                renderCustomers(filteredCustomers);
+            });
+
+            // Dashboard customer search
+            const dashboardSearchInput = document.getElementById('dashboard-customer-search');
+            if (dashboardSearchInput) {
+                console.log('Dashboard search input found');
+                dashboardSearchInput.addEventListener('input', function(e) {
+                    console.log('Search term:', e.target.value);
+                    const searchTerm = e.target.value.toLowerCase();
+                    const filteredCustomers = window.customers.filter(customer => 
+                        customer.name.toLowerCase().includes(searchTerm) ||
+                        customer.email.toLowerCase().includes(searchTerm) ||
+                        customer.phone.includes(searchTerm)
+                    );
+                    console.log('Filtered customers:', filteredCustomers);
+                    window.currentPage = 1; // Reset to first page when searching
+                    renderDashboardCustomers(filteredCustomers);
+                });
+            } else {
+                console.error('Dashboard search input not found');
+            }
+
+            // Bottom navigation
+            document.querySelectorAll('.bottom-nav a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    document.querySelectorAll('.bottom-nav a').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    goToTab(this.getAttribute('href').substring(1));
+                });
+            });
+
+            // Mode toggle
+            document.getElementById('mode-toggle').addEventListener('change', function(e) {
+                if (this.checked) {
+                    document.body.classList.add('mobile-mode');
+                } else {
+                    document.body.classList.remove('mobile-mode');
+                }
+            });
+
+            // Export JSON
+            document.getElementById('export-json').addEventListener('click', function() {
+                const data = {
+                    comics: window.comics,
+                    customers: window.customers
+                };
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", "comic_connect_data.json");
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+            });
+
+            // Import JSON
+            document.getElementById('import-json').addEventListener('click', function() {
+                document.getElementById('import-json-input').click();
+            });
+
+            document.getElementById('import-json-input').addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const importedData = JSON.parse(e.target.result);
+                        importData(importedData);
+                    };
+                    reader.readAsText(file);
+                }
+            });
+
+                // Add this line with the other event listeners
+    document.getElementById('legacy-import').addEventListener('click', importLegacyData);
+
+            // Gist Push
+            document.getElementById('gist-push').addEventListener('click', pushToGist);
+
+            // Gist Import
+            document.getElementById('gist-import').addEventListener('click', function() {
+                const gistUrl = prompt("Enter the Gist URL:");
+                if (gistUrl) {
+                    pullFromGist(gistUrl);
+                }
+            });
+
+            // Modal overlay click event
+            document.getElementById('modal-overlay').addEventListener('click', function() {
+                document.getElementById('pull-list-modal').style.display = 'none';
+                this.style.display = 'none';
+            });
+
+            // Save form data when modal is closed
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('modal-close')) {
+                        const form = this.querySelector('form');
+                        if (form) {
+                            const formData = new FormData(form);
+                            const formId = form.id;
+                            localStorage.setItem(formId, JSON.stringify(Object.fromEntries(formData)));
+                        }
+                    }
+                });
+            });
+
+            // Load saved form data when modal is opened
+            document.querySelectorAll('.modal-trigger').forEach(trigger => {
+                trigger.addEventListener('click', function() {
+                    const modalId = this.getAttribute('href');
+                    const modal = document.querySelector(modalId);
+                    const form = modal.querySelector('form');
+                    if (form) {
+                        const formId = form.id;
+                        const savedData = localStorage.getItem(formId);
+                        if (savedData) {
+                            const formData = JSON.parse(savedData);
+                            Object.keys(formData).forEach(key => {
+                                const field = form.elements[key];
+                                if (field) {
+                                    field.value = formData[key];
+                                }
+                            });
+                            M.updateTextFields();
+                        }
+                    }
+                });
+            });
+
+            // Set up color rotation for main navigation
+            setupColorRotation();
+
+            // Load settings from cookies
+            loadSettingsFromCookies();
+
+            // Save settings and data periodically
+            setInterval(saveAllData, 3600000); // Save every hour
+
+            // Save settings and data when the page is about to unload
+            window.addEventListener('beforeunload', function() {
+                saveAllData();
+                saveSettingsToCookies();
+            });
+
+            // Initialize and update clock
+            updateClock();
+            setInterval(updateClock, 1000);
+
+            console.log('DOMContentLoaded setup completed');
+        });
+
+        function renderComics(comicsToRender = window.comics) {
+            const comicList = document.getElementById('comic-list');
+            comicList.innerHTML = '';
+            comicsToRender.forEach((comic, index) => {
+                const comicItem = document.createElement('div');
+                comicItem.className = 'comic-item';
+                comicItem.innerHTML = `
+                    ${comic.coverImage ? `<img src="${comic.coverImage}" alt="${comic.title} cover" class="comic-cover">` : ''}
+                    <div class="title tooltipped" data-position="top" data-tooltip="Comic title and issue number">${comic.title} ${comic.issue_number ? '#' + comic.issue_number : ''}</div>
+                    <div class="publisher tooltipped" data-position="top" data-tooltip="Publisher">${comic.publisher}</div>
+                    <div class="stock tooltipped" data-position="top" data-tooltip="Current stock">Stock: ${comic.stock !== null ? comic.stock : 'N/A'}</div>
+                    <div class="actions">
+                        <a class="waves-effect waves-light btn-small tooltipped" data-position="top" data-tooltip="Edit comic" onclick="editComic(${index})">
+                            <i class="material-icons">edit</i>
+                        </a>
+                        <a class="waves-effect waves-light btn-small red tooltipped" data-position="top" data-tooltip="Delete comic" onclick="deleteComic(${index})">
+                            <i class="material-icons">delete</i>
+                        </a>
+                    </div>
+                `;
+                comicList.appendChild(comicItem);
+            });
+            M.Tooltip.init(comicList.querySelectorAll('.tooltipped'));
+        }
+
+        function renderCustomers(customersToRender = window.customers) {
+            const customerList = document.getElementById('customer-list');
+            customerList.innerHTML = '';
+            customersToRender.forEach((customer, index) => {
+                const customerItem = document.createElement('div');
+                customerItem.className = 'customer-item';
+                customerItem.innerHTML = `
+                    <div class="name tooltipped" data-position="top" data-tooltip="Customer name">${customer.name}</div>
+                    <div class="email tooltipped" data-position="top" data-tooltip="Customer email">${customer.email}</div>
+                    <div class="phone tooltipped" data-position="top" data-tooltip="Customer phone">${customer.phone}</div>
+                    <div class="actions">
+                        <a class="waves-effect waves-light btn-small tooltipped" data-position="top" data-tooltip="Edit customer" onclick="editCustomer(${index})">
+                            <i class="material-icons">edit</i>
+                        </a>
+                        <a class="waves-effect waves-light btn-small tooltipped" data-position="top" data-tooltip="Manage pull list" onclick="managePullList(${index})">
+                            <i class="material-icons">list</i>
+                        </a>
+                        <a class="waves-effect waves-light btn-small red tooltipped" data-position="top" data-tooltip="Delete customer" onclick="deleteCustomer(${index})">
+                            <i class="material-icons">delete</i>
+                        </a>
+                    </div>
+                `;
+                customerList.appendChild(customerItem);
+            });
+            M.Tooltip.init(customerList.querySelectorAll('.tooltipped'));
+        }
+
+        function renderDashboardCustomers(customersToRender) {
+    console.log('Rendering dashboard customers:', customersToRender);
+    const customerResults = document.getElementById('dashboard-customer-results');
+    if (!customerResults) {
+        console.error('Dashboard customer results element not found');
+        return;
+    }
+    customerResults.innerHTML = '';
+
+    // Calculate pagination
+    const totalPages = Math.ceil(customersToRender.length / window.CUSTOMERS_PER_PAGE);
+    const startIndex = (window.currentPage - 1) * window.CUSTOMERS_PER_PAGE;
+    const endIndex = startIndex + window.CUSTOMERS_PER_PAGE;
+    const customersOnPage = customersToRender.slice(startIndex, endIndex);
+
+    const isMobile = window.innerWidth <= 600;
+
+    // Render customers for current page
+    customersOnPage.forEach((customer, index) => {
+        const customerCard = document.createElement('div');
+        customerCard.className = `dashboard-customer-card ${isMobile ? 'col s12' : 'col s12 m6 l4'}`;
+        customerCard.innerHTML = `
+            <div class="card-content">
+                <span class="card-title">${customer.name}</span>
+                <p>Phone: ${customer.phone}</p>
+                <p>Pull List: ${customer.pull_list.length} items</p>
+            </div>
+            <div class="card-action">
+                <div>
+                    <a class="waves-effect waves-light btn-small tooltipped" data-position="top" data-tooltip="Manage pull list" onclick="managePullList(${startIndex + index})">
+                        <i class="material-icons">list</i>
+                    </a>
+                    <a class="waves-effect waves-light btn-small tooltipped" data-position="top" data-tooltip="Go to customer management" onclick="goToCustomerManagement(${startIndex + index})">
+                        <i class="material-icons">person</i>
+                    </a>
+                </div>
+                <div class="rating-select-wrapper">
+                    <select class="rating-select browser-default" data-customer-index="${startIndex + index}">
+                        <option value="" disabled ${!customer.rating ? 'selected' : ''}>Rate</option>
+                        <option value="1" ${customer.rating === 1 ? 'selected' : ''}>1 Star</option>
+                        <option value="2" ${customer.rating === 2 ? 'selected' : ''}>2 Stars</option>
+                        <option value="3" ${customer.rating === 3 ? 'selected' : ''}>3 Stars</option>
+                        <option value="4" ${customer.rating === 4 ? 'selected' : ''}>4 Stars</option>
+                        <option value="5" ${customer.rating === 5 ? 'selected' : ''}>5 Stars</option>
+                    </select>
+                </div>
+            </div>
+        `;
+        customerResults.appendChild(customerCard);
+    });
+
+    // Add pagination controls
+    const paginationControls = document.createElement('div');
+    paginationControls.className = 'pagination-controls center-align';
+    paginationControls.innerHTML = `
+        <ul class="pagination">
+            <li class="${window.currentPage === 1 ? 'disabled' : 'waves-effect'}"><a href="#!" onclick="changePage(${window.currentPage - 1})"><i class="material-icons">chevron_left</i></a></li>
+            ${Array.from({length: totalPages}, (_, i) => i + 1).map(page => `
+                <li class="${page === window.currentPage ? 'active' : 'waves-effect'}"><a href="#!" onclick="changePage(${page})">${page}</a></li>
+            `).join('')}
+            <li class="${window.currentPage === totalPages ? 'disabled' : 'waves-effect'}"><a href="#!" onclick="changePage(${window.currentPage + 1})"><i class="material-icons">chevron_right</i></a></li>
+        </ul>
+    `;
+    customerResults.appendChild(paginationControls);
+
+    // Initialize Materialize components
+    M.Tooltip.init(document.querySelectorAll('.tooltipped'));
+
+    // Add event listeners for rating changes
+    document.querySelectorAll('.rating-select').forEach(select => {
+        select.addEventListener('change', handleRatingChange);
+    });
+
+    console.log('Dashboard customers rendered');
+}
+
+        function changePage(newPage) {
+            if (newPage >= 1 && newPage <= Math.ceil(window.customers.length / CUSTOMERS_PER_PAGE)) {
+                window.currentPage = newPage;
+                renderDashboardCustomers(window.customers);
+            }
+        }
+
+        function handleRatingChange(event) {
+            const select = event.target;
+            const rating = parseInt(select.value);
+            const customerIndex = select.getAttribute('data-customer-index');
+
+            // Update customer rating
+            window.customers[customerIndex].rating = rating;
+
+            // Save to localStorage
+            localStorage.setItem('customers', JSON.stringify(window.customers));
+
+            M.toast({html: `${window.customers[customerIndex].name} rated ${rating} stars!`, classes: 'rounded'});
+        }
+
+        function showCustomerInfo(index) {
+            const customer = window.customers[index];
+            const infoBox = document.createElement('div');
+            infoBox.className = 'customer-info-box';
+            infoBox.innerHTML = `
+                <i class="material-icons close-btn">close</i>
+                <h4>${capitalizeWords(customer.name)}</h4>
+                <div class="customer-details"></div>
+            `;
+            document.body.appendChild(infoBox);
+
+            const detailsContainer = infoBox.querySelector('.customer-details');
+            const customerDetails = `
+## Contact Information
+- **Email:** ${customer.email}
+- **Phone:** ${customer.phone}
+
+## Notes
+${customer.notes || 'No notes available.'}
+
+## Pull List
+${customer.pull_list.length > 0 ? customer.pull_list.map(item => `- ${item}`).join('\n') : 'No items in pull list.'}
+
+## Rating
+${customer.rating ? '⭐'.repeat(customer.rating) : 'Not rated'}
+            `;
+            detailsContainer.innerHTML = marked(customerDetails);
+
+            infoBox.querySelector('.close-btn').addEventListener('click', () => {
+                document.body.removeChild(infoBox);
+            });
+
+            // Close the info box when clicking outside of it
+            document.addEventListener('click', function closeInfoBox(e) {
+                if (!infoBox.contains(e.target)) {
+                    document.body.removeChild(infoBox);
+                    document.removeEventListener('click', closeInfoBox);
+                }
+            });
+        }
+
+        function capitalizeWords(str) {
+            return str.replace(/\b\w/g, function(l){ return l.toUpperCase() });
+        }
+
+        function showAddComicModal() {
+            M.Modal.getInstance(document.getElementById('add-comic-modal')).open();
+        }
+
+        function showAddCustomerModal() {
+            // Reset the form
+            const form = document.getElementById('customer-form');
+            if (form) {
+                form.reset();
+            }
+
+            // Update text fields to ensure labels are positioned correctly
+            M.updateTextFields();
+
+            // Reset the submit button text
+            const submitButton = document.querySelector('#customer-form button[type="submit"]');
+            if (submitButton) {
+                submitButton.innerHTML = 'Add / Update Customer <i class="material-icons right">person_add</i>';
+            }
+
+            // Clear the editing index
+            window.editingCustomerIndex = undefined;
+
+            // Open the modal
+            const modal = document.getElementById('add-customer-modal');
+            if (modal) {
+                const modalInstance = M.Modal.getInstance(modal);
+                if (modalInstance) {
+                    modalInstance.open();
+                } else {
+                    M.Modal.init(modal).open();
+                }
+            } else {
+                console.error('Add customer modal not found');
+            }
+        }
+
+        function showSettingsModal() {
+            M.Modal.getInstance(document.getElementById('settings-modal')).open();
+        }
+
+        window.editComic = function(index) {
+            const comic = window.comics[index];
+            document.getElementById('title').value = comic.title;
+            document.getElementById('publisher').value = comic.publisher;
+            document.getElementById('issue_number').value = comic.issue_number || '';
+            document.getElementById('genre').value = comic.genre;
+            document.getElementById('release_date').value = comic.release_date;
+            document.getElementById('price').value = comic.price || '';
+            document.getElementById('stock').value = comic.stock || '';
+            M.updateTextFields();
+            M.FormSelect.init(document.getElementById('publisher'));
+            window.comics.splice(index, 1);
+            localStorage.setItem('comics', JSON.stringify(window.comics));
+            renderComics();
+            updateDashboard();
+            showAddComicModal();
+        };
+
+        window.deleteComic = function(index) {
+            if (confirm('Are you sure you want to delete this comic?')) {
+                window.comics.splice(index, 1);
+                localStorage.setItem('comics', JSON.stringify(window.comics));
+                renderComics();
+                updateDashboard();
+            }
+        };
+
+        window.editCustomer = function(index) {
+    const customer = window.customers[index];
+    document.getElementById('name').value = customer.name;
+    document.getElementById('email').value = customer.email === "<no>" ? "" : customer.email;
+    document.getElementById('phone').value = customer.phone;
+    document.getElementById('notes').value = customer.notes;
+    document.getElementById('pull_list').value = Array.isArray(customer.pull_list) 
+        ? customer.pull_list.join('\n') 
+        : customer.pull_list;
+    M.updateTextFields();
+
+    console.log('Editing customer:', customer); // Debug log
+    console.log('Pull list loaded:', document.getElementById('pull_list').value); // Debug log
+
+    // Store the index of the customer being edited
+    window.editingCustomerIndex = index;
+
+    // Change the submit button text to indicate we're updating
+    const submitButton = document.querySelector('#customer-form button[type="submit"]');
+    submitButton.textContent = 'Update Customer';
+    submitButton.insertAdjacentHTML('beforeend', '<i class="material-icons right">save</i>');
+
+    M.Modal.getInstance(document.getElementById('add-customer-modal')).open();
+};
+
+        window.deleteCustomer = function(index) {
+            if (confirm('Are you sure you want to delete this customer?')) {
+                window.customers.splice(index, 1);
+                localStorage.setItem('customers', JSON.stringify(window.customers));
+                renderCustomers();
+                renderDashboardCustomers(window.customers);
+                updateDashboard();
+            }
+        };
+
+        window.managePullList = function(index) {
+            const customer = window.customers[index];
+            const pullListModal = document.getElementById('pull-list-modal');
+            const pullListItems = document.getElementById('pull-list-items');
+            pullListItems.innerHTML = '';
+
+            customer.pull_list.forEach((item, i) => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                pullListItems.appendChild(li);
+            });
+
+            pullListModal.style.display = 'block';
+            document.getElementById('modal-overlay').style.display = 'block';
+        };
+
+        window.saveCustomer = function(index) {
+            const customer = window.customers[index];
+            localStorage.setItem('customers', JSON.stringify(window.customers));
+            M.toast({html: `Customer ${customer.name} saved successfully!`, classes: 'rounded'});
+        };
+
+        function updateDashboard() {
+            document.getElementById('total-comics').textContent = window.comics.length;
+            document.getElementById('active-customers').textContent = window.customers.length;
+            
+            let pendingNotifications = 0;
+            window.customers.forEach(customer => {
+                customer.pull_list.forEach(pullItem => {
+                    const matchingComic = window.comics.find(comic => 
+                        `${comic.title} ${comic.issue_number ? '#' + comic.issue_number : ''}`.toLowerCase() === pullItem.toLowerCase() &&
+                        comic.stock > 0
+                    );
+                    if (matchingComic) {
+                        pendingNotifications++;
+                    }
+                });
+            });
+            document.getElementById('pending-notifications').textContent = pendingNotifications;
+
+            // Update recent activity
+            const recentActivity = document.getElementById('recent-activity');
+            recentActivity.innerHTML = '';
+            const activities = [
+                ...window.comics.slice(-3).map(comic => `Added new comic: ${comic.title} ${comic.issue_number ? '#' + comic.issue_number : ''}`),
+                ...window.customers.slice(-3).map(customer => `New customer: ${customer.name}`)
+            ];
+            activities.sort(() => 0.5 - Math.random()).slice(0, 5).forEach(activity => {
+                const li = document.createElement('li');
+                li.className = 'collection-item';
+                li.textContent = activity;
+                recentActivity.appendChild(li);
+            });
+        }
+
+        function goToTab(tabName) {
+            const tabElement = document.querySelector(`a[href="#${tabName}"]`);
+            if (tabElement) {
+                const tabInstance = M.Tabs.getInstance(document.querySelector('.tabs'));
+                tabInstance.select(tabName);
+                // Scroll to the top of the page
+                window.scrollTo(0, 0);
+            }
+        }
+
+        function goToCustomerManagement(index) {
+            goToTab('customers');
+            const customerList = document.getElementById('customer-list');
+            const customerItems = customerList.getElementsByClassName('customer-item');
+            if (customerItems[index]) {
+                customerItems[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                customerItems[index].classList.add('highlight');
+                setTimeout(() => {
+                    customerItems[index].classList.remove('highlight');
+                }, 2000);
+            }
+        }
+
+        function checkDailyExport() {
+    const lastExportPrompt = localStorage.getItem('lastExportPrompt');
+    const now = new Date().getTime();
+    const oneDayInMs = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+    if (!lastExportPrompt || now - parseInt(lastExportPrompt) > oneDayInMs) {
+        // It's been more than a day since the last prompt, show the export modal
+        const exportModal = M.Modal.getInstance(document.getElementById('export-modal'));
+        exportModal.open();
+        
+        // Update the last export prompt time
+        localStorage.setItem('lastExportPrompt', now.toString());
+    }
+}
+
+function exportDatabase() {
+    const data = {
+        comics: window.comics,
+        customers: window.customers
+    };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "comic_connect_data_" + new Date().toISOString().split('T')[0] + ".json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+    M.toast({html: 'Database exported successfully!', classes: 'rounded'});
+}
+
+        function fetchComicCover(comic) {
+            const query = `${comic.publisher} ${comic.title} ${comic.issue_number} ${new Date(comic.release_date).getFullYear()}`;
+            // Here you would typically make an API call to fetch the cover image
+            // For demonstration purposes, we'll just log the query
+            console.log(`Fetching cover for: ${query}`);
+            // In a real implementation, you would:
+            // 1. Make an API call to search for the cover
+            // 2. If found, download the image
+            // 3. Save it to the 'BookCovers' folder (creating the folder if it doesn't exist)
+            // 4. Name the file as 'publishername-title-issue-year.png'
+        }
+
+        function rateCustomer(index) {
+            const customer = window.customers[index];
+            const newRating = prompt(`Rate ${customer.name} (1-5 stars):`, customer.rating || '');
+            if (newRating !== null) {
+                const rating = parseInt(newRating);
+                if (rating >= 1 && rating <= 5) {
+                    customer.rating = rating;
+                    localStorage.setItem('customers', JSON.stringify(window.customers));
+                    renderDashboardCustomers(window.customers);
+                    M.toast({html: `${customer.name} rated ${rating} stars!`, classes: 'rounded'});
+                } else {
+                    M.toast({html: 'Invalid rating. Please enter a number between 1 and 5.', classes: 'rounded red'});
+                }
+            }
+        }
+
+        function saveAllData() {
+            localStorage.setItem('comics', JSON.stringify(window.comics));
+            localStorage.setItem('customers', JSON.stringify(window.customers));
+            M.toast({html: 'All data saved successfully!', classes: 'rounded'});
+        }
+
+        function setupColorRotation() {
+            const colors = ['red', 'blue', 'green', 'purple'];
+            const today = new Date();
+            const colorIndex = today.getDate() % colors.length;
+            document.getElementById('main-nav').className = colors[colorIndex];
+        }
+
+        function loadSettingsFromCookies() {
+            const settings = JSON.parse(getCookie('settings') || '{}');
+            if (settings.mobileMode) {
+                document.getElementById('mode-toggle').checked = true;
+                document.body.classList.add('mobile-mode');
+            }
+            if (settings.fetchCovers) {
+                document.getElementById('fetch-covers-toggle').checked = true;
+            }
+        }
+
+        function saveSettingsToCookies() {
+            const settings = {
+                mobileMode: document.getElementById('mode-toggle').checked,
+                fetchCovers: document.getElementById('fetch-covers-toggle').checked
+            };
+            setCookie('settings', JSON.stringify(settings), 365);
+        }
+
+        function setCookie(name, value, days) {
+            const expires = new Date();
+            expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+            document.cookie = name + '=' + value + ';expires=' + expires.toUTCString();
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        function importData(importedData) {
+            if (importedData.comics) {
+                importedData.comics.forEach(importedComic => {
+                    const existingComic = window.comics.find(c => 
+                        c.title === importedComic.title && 
+                        c.issue_number === importedComic.issue_number &&
+                        c.publisher === importedComic.publisher
+                    );
+                    if (!existingComic) {
+                        window.comics.push(importedComic);
+                    }
+                });
+            }
+            if (importedData.customers) {
+                importedData.customers.forEach(importedCustomer => {
+                    const existingCustomer = window.customers.find(c => 
+                        c.name === importedCustomer.name && 
+                        c.email === importedCustomer.email
+                    );
+                    if (!existingCustomer) {
+                        window.customers.push(importedCustomer);
+                    }
+                });
+            }
+            localStorage.setItem('comics', JSON.stringify(window.comics));
+            localStorage.setItem('customers', JSON.stringify(window.customers));
+            renderComics();
+            renderCustomers();
+            renderDashboardCustomers(window.customers);
+            updateDashboard();
+            M.toast({html: 'Data imported successfully!', classes: 'rounded'});
+        }
+
+        function importLegacyData() {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.multiple = true;
+    fileInput.accept = '.txt';
+    
+    fileInput.onchange = async function(event) {
+        const files = event.target.files;
+        const customers = {};
+        const newComics = [];
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const fileName = file.name;
+            const content = await file.text();
+
+            const nameMatch = fileName.match(/^(.+?)-(DC|Marvel|Indie)-Pull\.txt$/i);
+            if (nameMatch) {
+                // Process customer pull lists (existing code)
+                const [, customerName, company] = nameMatch;
+                if (!customers[customerName]) {
+                    customers[customerName] = { pull_list: [] };
+                }
+                customers[customerName].pull_list.push(...content.split('\n')
+                    .map(title => title.trim().replace(/\r$/, ''))
+                    .filter(title => title !== ''));
+            } else if (fileName.endsWith('-notes.txt')) {
+                // Process customer notes (existing code)
+                const customerName = fileName.replace('-notes.txt', '');
+                if (!customers[customerName]) {
+                    customers[customerName] = {};
+                }
+                customers[customerName].notes = content.trim();
+            } else if (fileName.endsWith('-info.txt')) {
+                // Process customer info (existing code)
+                const customerName = fileName.replace('-info.txt', '');
+                if (!customers[customerName]) {
+                    customers[customerName] = {};
+                }
+                const [name, phone, , rating] = content.split('\n').map(line => line.trim());
+                customers[customerName].name = name || customerName;
+                customers[customerName].phone = phone || '';
+                customers[customerName].rating = rating ? Math.min(Math.round(parseInt(rating) / 2), 5) : 0;
+            } else if (fileName.match(/^(DC|Marvel|Indie)-index\.txt$/i)) {
+                // Process inventory index files
+                const publisher = fileName.split('-')[0];
+                const titles = content.split('\n')
+                    .map(title => title.trim().replace(/\r$/, ''))
+                    .filter(title => title !== '');
+                
+                titles.forEach(title => {
+                    newComics.push({
+                        title: title,
+                        publisher: publisher === 'Indie' ? 'Other' : publisher,
+                        issue_number: null,
+                        genre: 'N/A',
+                        release_date: null,
+                        price: null,
+                        stock: null
+                    });
+                });
+            }
+        }
+
+        // Update or create customers (existing code)
+        for (const [customerName, customerData] of Object.entries(customers)) {
+            const existingCustomerIndex = window.customers.findIndex(c => c.name.toLowerCase() === customerName.toLowerCase());
+            if (existingCustomerIndex !== -1) {
+                window.customers[existingCustomerIndex] = {
+                    ...window.customers[existingCustomerIndex],
+                    ...customerData,
+                    pull_list: [...new Set([...window.customers[existingCustomerIndex].pull_list, ...customerData.pull_list])]
+                };
+            } else {
+                window.customers.push({
+                    name: customerName,
+                    email: '<no>',
+                    phone: customerData.phone || '',
+                    notes: customerData.notes || '',
+                    pull_list: customerData.pull_list || [],
+                    rating: customerData.rating || 0
+                });
+            }
+        }
+
+        // Add new comics to inventory
+        newComics.forEach(newComic => {
+            const existingComicIndex = window.comics.findIndex(c => 
+                c.title.toLowerCase() === newComic.title.toLowerCase() &&
+                c.publisher.toLowerCase() === newComic.publisher.toLowerCase()
+            );
+            if (existingComicIndex === -1) {
+                window.comics.push(newComic);
+            }
+        });
+
+        // Save updated data to localStorage
+        localStorage.setItem('customers', JSON.stringify(window.customers));
+        localStorage.setItem('comics', JSON.stringify(window.comics));
+
+        // Refresh the UI
+        renderCustomers();
+        renderDashboardCustomers(window.customers);
+        renderComics();
+        updateDashboard();
+
+        M.toast({html: 'Legacy data imported successfully!', classes: 'rounded'});
+    };
+
+    // Trigger the file input dialog
+    fileInput.click();
+}
+
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const formattedHours = hours % 12 || 12;
+            const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const dayName = days[now.getDay()];
+            const date = now.getDate();
+            const year = now.getFullYear();
+
+            const clockElement = document.getElementById('clock');
+            clockElement.textContent = `${formattedHours}:${formattedMinutes} ${ampm} | ${dayName} the ${date}, ${year}`;
+        }
+
+        function pushToGist() {
+            cleanupOldGists();  // Clean up old Gists before creating a new one
+
+            const token = getGitHubToken();
+            if (!token) {
+                M.toast({html: 'GitHub token is required to create a Gist', classes: 'rounded red'});
+                return;
+            }
+
+            const data = {
+                comics: window.comics,
+                customers: window.customers
+            };
+            const jsonContent = JSON.stringify(data, null, 2);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://api.github.com/gists', true);
+            xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+            xhr.setRequestHeader('Authorization', `token ${token}`);
+            
+            xhr.onload = function() {
+                if (this.status >= 200 && this.status < 300) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.id && response.html_url) {
+                            console.log('Gist created successfully:', response.html_url);
+                            storeGistInfo(response.id);  // Store the new Gist's info
+                            M.toast({html: `Data pushed to Gist. URL: ${response.html_url}`, classes: 'rounded', displayLength: 10000});
+                            navigator.clipboard.writeText(response.html_url).then(() => {
+                                M.toast({html: 'Gist URL copied to clipboard!', classes: 'rounded'});
+                            });
+                        } else {
+                            console.error('Unexpected Gist response:', response);
+                            M.toast({html: 'Unexpected Gist response', classes: 'rounded red'});
+                        }
+                    } catch (error) {
+                        console.error('Error parsing Gist response:', error);
+                        M.toast({html: 'Error processing Gist response', classes: 'rounded red'});
+                    }
+                } else {
+                    console.error('Gist creation failed. Status:', this.status, 'Response:', this.responseText);
+                    M.toast({html: `Failed to push data to Gist. Status: ${this.status}`, classes: 'rounded red'});
+                }
+            };
+            xhr.onerror = function(error) {
+                console.error('XHR Error:', error);
+                M.toast({html: 'Network error occurred while pushing to Gist', classes: 'rounded red'});
+            };
+            const gistData = JSON.stringify({
+                description: "Comic World Connection Data Backup",
+                public: false,
+                files: {
+                    "comic_world_data.json": {
+                        content: jsonContent
+                    }
+                }
+            });
+            xhr.send(gistData);
+        }
+
+        function pullFromGist(gistUrl) {
+            cleanupOldGists();
+            // Extract Gist ID from URL
+            const gistId = gistUrl.split('/').pop();
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `https://api.github.com/gists/${gistId}`, true);
+            xhr.onload = function() {
+                if (this.status >= 200 && this.status < 300) {
+                    const gist = JSON.parse(xhr.responseText);
+                    if (gist.files['comic_world_data.json']) {
+                        const content = JSON.parse(gist.files['comic_world_data.json'].content);
+                        if (content.comics && content.customers) {
+                            window.comics = content.comics;
+                            window.customers = content.customers;
+                            localStorage.setItem('comics', JSON.stringify(window.comics));
+                            localStorage.setItem('customers', JSON.stringify(window.customers));
+                            renderComics();
+                            renderCustomers();
+                            renderDashboardCustomers(window.customers);
+                            updateDashboard();
+                            M.toast({html: 'Data imported successfully from Gist!', classes: 'rounded'});
+                        } else {
+                            M.toast({html: 'Invalid data format in Gist', classes: 'rounded red'});
+                        }
+                    } else {
+                        M.toast({html: 'Comic World data not found in Gist', classes: 'rounded red'});
+                    }
+                } else {
+                    M.toast({html: 'Failed to fetch Gist data', classes: 'rounded red'});
+                }
+            };
+            xhr.onerror = function() {
+                M.toast({html: 'Error occurred while fetching Gist', classes: 'rounded red'});
+            };
+            xhr.send();
+        }
+
+        function getGitHubToken() {
+            return prompt("Please enter your GitHub Personal Access Token:");
+        }
+
+        function storeGistInfo(gistId) {
+            let gists = JSON.parse(localStorage.getItem('gists') || '[]');
+            gists.push({ id: gistId, createdAt: new Date().getTime() });
+            localStorage.setItem('gists', JSON.stringify(gists));
+        }
+
+        function cleanupOldGists() {
+            const token = getGitHubToken();
+            if (!token) return;
+
+            let gists = JSON.parse(localStorage.getItem('gists') || '[]');
+            const oneHourAgo = new Date().getTime() - (60 * 60 * 1000);
+            const oldGists = gists.filter(gist => gist.createdAt < oneHourAgo);
+
+            oldGists.forEach(gist => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('DELETE', `https://api.github.com/gists/${gist.id}`, true);
+                xhr.setRequestHeader('Authorization', `token ${token}`);
+                xhr.onload = function() {
+                    if (this.status === 204) {
+                        console.log(`Deleted old Gist: ${gist.id}`);
+                    } else {
+                        console.error(`Failed to delete Gist ${gist.id}. Status: ${this.status}`);
+                    }
+                };
+                xhr.onerror = function() {
+                    console.error(`Network error when deleting Gist ${gist.id}`);
+                };
+                xhr.send();
+            });
+
+            // Update the stored gists list
+            gists = gists.filter(gist => gist.createdAt >= oneHourAgo);
+            localStorage.setItem('gists', JSON.stringify(gists));
+        }
+  </script>
+ </body>
+</html>
